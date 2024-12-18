@@ -1,0 +1,413 @@
+---
+title: "Analysis of Housing Prices"
+author: "Arshdeep Kaur, Gurmol Sohi, Hritvik Gaind, Maharsh Khamar"
+date: "October 2024"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE,echo = TRUE)
+```
+
+## INTRODUCTION
+
+Housing prices have significant impacts on individuals, communities, and the broader economy. Understanding the key drivers of housing price fluctuations is crucial for homebuyers, real estate professionals, investors, and policymakers. This paper aims to analyze a sampled housing prices dataset to uncover insights into the factors influencing housing price dynamics.
+
+## DATASET
+The dataset has been obtained from *Kaggle* and contains information about **545 listed houses**, serving as a representative sample of the broader used housing market.
+
+The dataset includes the following key features:
+
+- **price**: The price of the property in a monetary value.
+- **area**: The total area of the property in square feet.
+- **bedrooms**: The number of bedrooms in the property.
+- **bathrooms**: The number of bathrooms in the property.
+- **stories**: The number of stories (floors) the property has.
+- **mainroad**: Indicates whether the property is located on the main road (*yes* or *no*).
+- **guestroom**: Whether the property has a guest room (*yes* or *no*).
+- **basement**: Whether the property has a basement (*yes* or *no*).
+- **hotwaterheating**: Indicates the presence of hot water heating in the property (*yes* or *no*).
+- **airconditioning**: Indicates if the property has air conditioning (*yes* or *no*).
+- **parking**: The number of parking spaces available for the property.
+- **prefarea**: Whether the property is located in a preferred area (*yes* or *no*).
+- **furnishingstatus**: The furnishing status indicating if the property is furnished or unfurnished.
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+data = read.csv("/Users/hritvikgaind/Desktop/UOC/602/PROJECT/Final Version/Housing.csv")
+head(data,5) 
+```
+
+## RESEARCH QUESTIONS
+
+
+**1) Does the number of floors in a property influence its price?**
+
+**2) Is the average property price significantly different from 4 million dollars?**
+
+**3) Do properties located on main roads have higher average prices compared to those without main road access?**
+
+**4) Are the average prices of furnished properties higher than those of unfurnished properties?**
+
+**5) Identifying the linear relationships between factors that impact property prices.**
+
+
+## EXPLORATORY DATA ANALYSIS
+
+
+**Price distribution by furnishing status**
+
+
+```{r}
+data$furnishingstatus = ifelse(data$furnishingstatus == 'semi-furnished', 'furnished',
+                               data$furnishingstatus)
+
+boxplot(price ~ furnishingstatus, 
+        data = data, 
+        xlab = "Furnishing Status", 
+        ylab = "Price", 
+        main = "Price by Furnishing Status", 
+        col = c("lightgreen", "lightblue"))
+
+```
+
+**Interpretation:**
+The box plot compares house prices based on whether they are furnished or unfurnished. Furnished houses generally cost more, with the typical price being around 6 million, while unfurnished houses have a lower average price, closer to 4 million. There are more expensive outliers in the furnished houses, meaning there are more high-priced furnished properties compared to unfurnished ones.
+
+
+
+
+
+### **Correlation matrix plot between different variables in the dataset**
+
+```{r}
+numeric_vars <- data[, c("price", "area", "bedrooms", "bathrooms", "stories", "parking")]
+cor_matrix <- cor(numeric_vars)
+
+# Load corrplot library
+library(corrplot)
+
+# Plot the correlation matrix
+corrplot(cor_matrix, method = "circle", title = "Correlation between different variables", 
+         mar = c(0, 0, 2, 0))
+
+```
+**Interpretation:**
+This heatmap shows how different factors are related to house prices. It indicates that larger areas tend to have higher prices, meaning there's a strong positive relationship between area size and price. The number of bathrooms and stories also has a positive relationship with price, but it's not as strong. Parking spaces show a moderate connection with price, suggesting that properties with more parking might be priced higher. The darker the circles on the heatmap, the stronger the relationship.
+
+
+
+### **Research Question 1**:  **Does the number of floors in a property influence its price?**
+
+```{r}
+ggplot(data, aes(x = reorder(as.factor(stories), -price), y = price)) +
+  geom_bar(stat = 'summary', fun = 'mean', fill = '#0073B2', color = 'black', width = 0.7) + 
+  
+  coord_flip() +
+  labs(title = 'Average Price by Number of Stories',
+       subtitle = 'Mean Price of Houses Based on the Number of Stories',
+       y = 'Average Price (in currency)', 
+       x = 'Number of Stories') +
+  theme_minimal(base_size = 15) + 
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"), 
+    plot.subtitle = element_text(hjust = 0.5, size = 14), 
+    axis.title.x = element_text(size = 14), 
+    axis.title.y = element_text(size = 14), 
+    axis.text.x = element_text(size = 12), 
+    axis.text.y = element_text(size = 12), 
+    panel.grid.major = element_line(color = "lightgray"), 
+    panel.grid.minor = element_blank(), 
+    plot.margin = margin(1, 1, 1, 1, "cm") 
+  ) +
+  geom_text(stat = 'summary', fun = 'mean', aes(label = round(..y.., 0)), 
+            position = position_stack(vjust = 0.5), color = 'white', size = 5)
+
+```
+
+**Interpretation:**
+The bar chart suggests that how house prices change in this sample dataset based on the number of stories. Houses with 1 story have the lowest average price, around 4.17 million, while houses with 4 stories have the highest average price, around 7.2 million. This suggests that, for this sample, as the number of stories increases, the price of the house also tends to go up.
+
+
+
+
+
+
+## HYPOTHESIS TESTING  
+
+
+### **Research Question 2**:  **Is the average property price significantly different from 4 million dollars?**
+
+**Null Hypothesis (H0)**: Average price of a house is equal to the hypothesized mean (4000000).
+
+**Alternative Hypothesis (H1)**: Average price of a house is greater than the hypothesized mean (4000000).
+
+
+
+```{r}
+
+t.test(data$price, mu = 4000000, conf.level = 0.95, alternative = "two.sided")
+
+random_values <- sample(data$price, size = 100, replace = FALSE)
+
+t.test(random_values, mu = 4000000, conf.level = 0.95, alternative = "two.sided")
+
+```
+
+
+**t-test Interpretation**:
+- The extremely small p-value (< 2.2e-16) indicates strong evidence against the null hypothesis that the true population mean is 4,000,000.
+- We can conclude that the true mean price is significantly different from 4,000,000.
+- The 95% confidence interval doesn't include 4,000,000, further supporting this conclusion.
+- The sample mean of 4,766,729 is our best estimate of the true population mean.
+
+**Random values t-test Interpretation**:
+- This test gives a mean which lies between the confidence interval of the t.test
+- This proves that when we take 100 random samples from the dataset, the mean will lie between the 95% confidence interval. 
+
+
+
+
+### **Research Question 3**:  **Do properties located on main roads have higher average prices compared to those without main road access?**
+
+**Null Hypothesis (H0)**: No significant difference in mean House prices located on main roads to those not on main roads.
+
+**Alternative Hypothesis (H1)**: House on main road have higher prices then houses which are not on main road.
+
+```{r}
+
+set.seed(123)
+
+library(dplyr)
+
+
+main_road = filter(data, mainroad == 'yes')
+no_main_road = filter(data, mainroad == 'no')
+
+price_mainroad = main_road$price
+price_nomainroad = no_main_road$price
+
+library(mosaic)
+
+mainroad = do(1000)*mean(resample(main_road$price))
+nomainroad = do(1000)*mean(resample(no_main_road$price))
+
+mean_diff = mainroad-nomainroad
+
+ggplot(mean_diff, aes(x = mean)) + geom_histogram(col = 'black', fill = 'blue', na.rm = TRUE) + 
+  labs(xlab = "Mean Difference (Main Road - No Main Road", ylab = "Frequency", 
+       title = "Distribution of Mean Price Difference between Houses having Main Road 
+       Access and No Main Road Access")
+
+
+UL = quantile(mean_diff$mean, 0.975)
+LL = quantile(mean_diff$mean, 0.025)
+
+cat("95% CI for difference of means using bootstrap approach is (", LL, ",", UL, ")")
+
+
+t.test(main_road$price, no_main_road$price, conf.level =0.95,var.equal=FALSE)
+```
+
+
+**Interpretation**:
+
+As we can see that the confidence interval we got from the bootstrap distribution is very similar to the t.test, and the p-value (< 2.2e-16) is much smaller than the conventional significance levels (0.05). This indicates strong evidence against the null hypothesis.
+
+The confidence interval does not include 0, which suggests a significant difference between the two groups.
+
+
+**Conclusion**:
+
+The null hypothesis is rejected.
+
+In this case, the null hypothesis (which typically states that there is no difference between the means of the two groups) is strongly rejected. The test provides strong evidence that there is a statistically significant difference in the mean prices between properties on main roads and those not on main roads.
+
+The data suggests that properties on main roads have significantly higher prices (mean = 4,991,777) compared to properties not on main roads (mean = 3,398,905), with an estimated difference ranging from 1,327,964 to 1,857,781 (95% confidence interval).
+
+
+### **Research Question 4**:  
+**Are the average prices of furnished properties higher than those of unfurnished properties?**
+
+**Null Hypothesis (H0)**: No significant statistical difference in Furnished House mean prices to Unfurnished House mean prices.
+
+**Alternative Hypothesis (H1)**: There is a significant statistical difference between Furnished House mean price to Unfurnished House mean prices.
+
+```{r}
+data$furnishingstatus = ifelse(data$furnishingstatus == 'semi-furnished', 'furnished', data$furnishingstatus)
+table(data$furnishingstatus)
+```
+
+```{r}
+set.seed(123)
+
+library(dplyr)
+library(ggplot2)
+#data$furnishingstatus = ifelse(data$furnishingstatus == 'semi-furnished', 'furnished', data$furnishingstatus)
+
+furnished_data = filter(data, furnishingstatus == 'furnished')
+unfurnished_data = filter(data, furnishingstatus != 'furnished')
+
+# Function to calculate the difference in means for bootstrap
+difference_in_means = function() {
+  boot_furnished = sample(furnished_data$price, size = nrow(furnished_data), replace = TRUE)
+  boot_unfurnished = sample(unfurnished_data$price, size = nrow(unfurnished_data), replace = TRUE)
+  mean(boot_furnished) - mean(boot_unfurnished)
+}
+
+# Generating bootstrap distribution by repeating the bootstrap process 1000 times
+bootstrap_distribution = replicate(1000, difference_in_means())
+
+# Converting the bootstrap_distribution vector to a data frame
+bootstrap_df <- data.frame(MeanDifference = bootstrap_distribution)
+
+# Creating the histogram using ggplot2
+
+ggplot(bootstrap_df, aes(x = MeanDifference)) + geom_histogram(fill = "lightblue",
+                                                               color = "black", boundary = 0)
+
+
+# Calculating 95% confidence intervals for the bootstrap distribution
+UL = quantile(bootstrap_df$MeanDifference, 0.975)
+LL = quantile(bootstrap_df$MeanDifference, 0.025)
+cat("95% CI for difference of means using bootstrap approach is (", LL, ",", UL, ")")
+
+
+t_test_result <- t.test(furnished_data$price, unfurnished_data$price,
+                        alternative = "two.sided", # You can use "two.sided" for a two-tailed test
+                        var.equal = FALSE)
+t_test_result
+```
+
+
+
+**Interpretation**:
+
+The bootstrap confidence interval for the difference in mean prices between furnished and unfurnished houses is between 810,367 and 1,431,052, indicating a positive difference and rejection of null hypothesis.
+
+The t-test results confirm this with a p-value of 1.515e-11, which is significantly smaller than 0.05, leading to the rejection of the null hypothesis.
+
+**Conclusion**:
+
+Furnished homes consistently have higher prices compared to unfurnished homes, with the difference in prices being statistically significant
+
+***
+
+
+## MULTI LINEAR REGRESSION [9]
+Multi Linear Regression is a statistical technique and extension of linear regression that uses two or more independent variable to predict the value for the dependent(response) variable. It helps us consider the importance of various indepentant variables or features and contribution in th etotal variation. \
+It is a type of regression which shows a linear relationship between two or more independent variables and a dependent variable. \
+It enables us to quantify the impact of numerous factors on the dependent variable at the same time and is frequently used for predictive analysis and hypothesis testing in a variety of sectors including house prices, healthcare and etc. \
+
+
+```{r}
+model <- lm(price ~ area + bathrooms + stories + parking , data = data)
+summary(model)
+```
+The population regression line for i explanatory variables $x_1, x_2, ...,x_i \ $ is defined to be \
+$\mu_y = \beta_0  + \beta_1 x_1+ \beta_2x_2 + ... +\beta_ix_i + \ $ 
+such that:
+- $\mu_y = \ $ the predictor variable \
+- $\beta_0 = \ $ Intercept i.e the value when all the values for $x_i$ is 0 \
+- $x_1 , x_2, .. x_i \ $ = the independent or exploratory variables \
+- $\beta_1 , \beta_2, .. \beta_i \ $ = these values determine the measure of impact of each independant variable on Y as known as the coefficients \
+
+**Significance of Intercept and Coefficient**
+
+- Intercept **(p = 0.382)** : No statistical signicance since the value is higher than 0.05.
+- Area **(p < 2e-16)** : High statistical significance
+- Bathroom **(p < 2e-16)** : High statistical significance
+- Stories **(p < 2e-16)** : High statistical significance
+- Parking **(p < 1.27e-08 )** : High statistical significance
+
+All variables are positive and statistically significant, indicating that they have a considerable influence on predicting price of the house, with bathrooms and area having the most effect.
+
+```{r}
+data$predicted <- predict(model)
+```
+
+The `data$predicted` variable contains the values for fitted model. It finds the predicted values of the dependent varuable using teh model's coeeficients and input data from the dataframe. The anticipated values are then put in a new column called predicted. This makes it simple to compare actual with the predicted values, which helps with performance evaluation and residual analysis. \ 
+
+```{r}
+library(ggplot2)
+ggplot(data, aes(x = predicted, y = price)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Predicted vs Actual Values",
+       x = "Predicted Values",
+       y = "Actual Values") +
+  theme_minimal() 
+
+
+```
+
+The graph compares the predicted (values predicted through the model) and actual values. The line represents where the predictions perfectly aligns the actual values. the black dots represent the actual data with a positive correlation betwen predicted and actual values. \
+
+```{r}
+data$residuals = residuals(model)
+ggplot(data, aes(sample = residuals)) +
+  stat_qq() +
+  stat_qq_line(col = "red") +
+  labs(title = "Q-Q PLOT",
+       x = "Predicted Values", 
+       y = "Residuals") +
+  theme_minimal()
+```
+
+```{r}
+predicted_values <- predict(model, data)
+ggplot(data, aes(x = predicted_values, y = data$residuals )) + geom_point(color = "black") +
+  geom_hline(yintercept = 0, linetype = 'dotted', color = "red") +
+  labs(title = "Residual Plot", x = "Predicted Values", y = "Residuals") +
+  theme_minimal()
+```
+**Outcomes from the Residual Plots:** \
+- **x-axis** represent sthe predicted values and **y-axis** represents the difference between the actual and predicted values or residuals.\
+- Since, the residuals rae randomly scattered around zero, which is a good sign confirming that the model does not experience strong bias around the predicted values \
+- We can observe from the graph that the model is doing decent job in showcasing the relationship between the independent variables and dependent variables. \
+- As observed from the graph, we can see that the graph exhibit a funnel effect that is the spread of residuals increases as the predicted values increases. This is known as heteroscedasticity. It is observed when the spread of residuals is not constant. Considering we are working on sample data makes it harder to distinguish between random noise and a true pattern like heteroscedasticity.\
+
+## CONCLUSION
+*Goodness-of-Fit:* \
+- *Model Performance:* The model explains around 55.83% of the variance in house prices (R-squared), which is reasonable. \
+- *Significance:* All of the exploratory variables in the model  are statistically significant, implying that they make important contributions to predicting house prices. \
+- *Residuals:* While the predictors are significant, the high residual standard error indicates that there is still significant unexplained variability in house prices, which is possible given our sample size of 545. The goodness-of-Fit works more effectively with a higher number of data points.
+
+
+
+
+\newpage
+
+## REFERENCES
+
+[1] GeeksforGeeks, "Hypothesis testing in R programming," GeeksforGeeks. [Online]. Available: https://www.geeksforgeeks.org/hypothesis-testing-in-r-programming/. [Accessed: Oct. 13, 2024]. 
+
+[2] GeeksforGeeks, "Simple linear regression using R," GeeksforGeeks. [Online]. Available: https://www.geeksforgeeks.org/simple-linear-regression-using-r/. [Accessed: Oct. 13, 2024]
+
+[3] GeeksforGeeks, "Data visualization with R and ggplot2," GeeksforGeeks. [Online]. Available: https://www.geeksforgeeks.org/data-visualization-with-r-and-ggplot2/. [Accessed: Oct. 13, 2024] 
+
+[4] GeeksforGeeks, "How to find confidence intervals in R," GeeksforGeeks. [Online]. Available: https://www.geeksforgeeks.org/how-to-find-confidence-intervals-in-r/. [Accessed: Oct. 13, 2024]. 
+
+[5] R-bloggers, "How to perform bootstrapping in R," R-bloggers, Dec. 2022. [Online]. Available: https://www.r-bloggers.com/2022/12/how-to-perform-bootstrapping-in-r/. [Accessed: Oct. 13, 2024]. 
+
+[6] R Core Team, "t.test," R Documentation, version 3.6.2. [Online]. Available: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/t.test. [Accessed: Oct. 13, 2024]. 
+
+[7] R-bloggers, "QQ plots in R: Quantile-Quantile Plots Quick Start Guide," R-bloggers, Jun. 2021. [Online]. Available: https://www.r-bloggers.com/2021/06/qq-plots-in-r-quantile-quantile-plots-quick-start-guide/. [Accessed: Oct. 13, 2024]. 
+
+[8] Statology, "Residual Plot in R: How to Create," Statology. [Online]. Available: https://www.statology.org/residual-plot-r/. [Accessed: Oct. 13, 2024]. 
+
+[9] DataCamp, "Multiple Linear Regression in R: A Tutorial," DataCamp. [Online]. Available: https://www.datacamp.com/tutorial/multiple-linear-regression-r-tutorial. [Accessed: Oct. 13, 2024]. 
+
+[10] Tilburg Science Hub, "Regression summary output in R: Understanding the output of a linear regression," Tilburg Science Hub. [Online]. Available: https://tilburgsciencehub.com/topics/analyze/regression/linear-regression/regression-summary-output-r/. [Accessed: Oct. 13, 2024].
+
+
+***
+
+
