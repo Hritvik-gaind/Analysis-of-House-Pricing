@@ -11,8 +11,6 @@ Housing prices play a critical role in individual financial decisions and broade
 - Price variations based on location and furnishing status.
 - Statistical relationships between independent variables and property prices.
 
----
-
 ## Dataset Details
 The dataset, sourced from Kaggle, consists of the following features:
 
