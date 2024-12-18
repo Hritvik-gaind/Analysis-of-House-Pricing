@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project focuses on analyzing factors influencing **housing prices** using a dataset of 545 houses. The study investigates how features such as area, number of bedrooms, bathrooms, stories, and other amenities affect property prices. Using statistical methods and machine learning models, the project identifies patterns and relationships that can help homeowners, real estate professionals, and policymakers make informed decisions.
+This project focuses on analyzing factors influencing **housing prices**. The study investigates how features such as area, number of bedrooms, bathrooms, stories, and other amenities affect property prices. Using statistical methods and machine learning models, the project identifies patterns and relationships that can help homeowners, real estate professionals, and policymakers make informed decisions.
 
 ## Introduction
 
